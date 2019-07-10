@@ -1,52 +1,41 @@
-import React, { useContext } from 'react';
-import { Redirect } from 'react-router-dom';
-
-import AuthContext from '../contexts/AuthContext';
-
-const SECRETS = {
-  username: 'robocop',
-  email: 'me@me.com',
-  password: 'abc123',
-  token: '12345'
-};
-
 const DELAY = 2;
+
+const USERS = [];
+
+const generateToken = () => Math.floor(100000 + Math.random() * 900000).toString();
 
 const wait = (sec) => new Promise((resolve) => setTimeout(resolve, sec * 1000));
 
 export const createNewUser = async ({ username, email, password }) => {
   await wait(DELAY);
-  const canCreate = email !== SECRETS.email && username !== SECRETS.username;
+  const canCreate = USERS.every(u => u.username !== username && u.email !== email);
   if (!canCreate) {
     throw new Error('Email or username already used');
   } else {
-    return true;
+    const token = generateToken();
+    const newUser = { username, email, password, token };
+    USERS.push(newUser);
+    console.log(`Token: ${token}`);
+    return { username, email };
   }
 };
 
 export const authenticateUser = async ({ email = '', password = '' }) => {
   await wait(DELAY);
-  const isAuthenticated = email === SECRETS.email && password === SECRETS.password;
-  if (!isAuthenticated) {
+  const authenticatedUser = USERS.find(u => u.email === email && u.password === password);
+  if (!authenticatedUser) {
     throw new Error('Email or password incorrect');
   } else {
-    return true;
+    return { username: authenticatedUser.username, email };
   }
 };
 
-export const authenticateToken = async (token) => {
+export const authenticateToken = async ({ email, token }) => {
   await wait(DELAY);
-  const hasValidToken = SECRETS.token === token;
-  if (!hasValidToken) {
+  const validUser = USERS.find(u => u.email === email && u.token === token);
+  if (!validUser) {
     throw new Error('Token incorrect or expired');
   } else {
-    return true;
+    return { username: validUser.username, email };
   }
-};
-
-const defaultAuthenticated = ({ isAuthenticated }) => isAuthenticated;
-
-export const requireAuthStatus = (Component, policy = defaultAuthenticated) => (props) => {
-  const [ authState ] = useContext(AuthContext);
-  return policy(authState) ? <Component {...props} /> : <Redirect to="/login" />;
 };

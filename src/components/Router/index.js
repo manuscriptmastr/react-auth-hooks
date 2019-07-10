@@ -6,15 +6,16 @@ import Confirm from '../Confirm';
 import Login from '../Login';
 import Home from '../Home';
 import Header from '../Header';
+import GuardedRoute, { userExists, userIsLoggedIn } from '../GuardedRoute';
 
 const Router = () =>
   <BrowserRouter>
     <Header />
     <Switch>
       <Route path="/signup" component={Signup} />
-      <Route path="/confirm" component={Confirm} />
+      <GuardedRoute path="/confirm" component={Confirm} guard={userExists} />
       <Route path="/login" component={Login} />
-      <Route path="/" component={Home} />
+      <GuardedRoute path="/" component={Home} guard={userIsLoggedIn} />
     </Switch>
   </BrowserRouter>
 ;
